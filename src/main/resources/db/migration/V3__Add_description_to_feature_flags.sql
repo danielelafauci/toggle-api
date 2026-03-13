@@ -1,0 +1,1 @@
+ALTER TABLE feature_flags ADD COLUMN description VARCHAR(255);
