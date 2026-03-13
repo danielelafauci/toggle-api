@@ -1,0 +1,51 @@
+openapi: 3.0.3
+info:
+  title: ToggleApi - Feature Flag Management
+  version: 1.0.0
+  description: B2B API per la gestione dei Feature Flag
+
+paths:
+  /api/v1/flags/status:
+    get:
+      summary: Verify status flag
+      operationId: getFlagStatus
+      tags:
+        - FeatureFlag
+      parameters:
+        - name: flagName
+          in: query
+          required: true
+          description: Name of the feature flag to check
+          schema:
+            type: string
+          example: flag1
+        - name: environment
+          in: query
+          description: Environment to check
+          required: true
+          schema:
+            type: string
+          example: production
+        - name: userId
+          in: query
+          description: User ID to calculate Canary Release
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Flag status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlagStatusResponse"
+
+components:
+  schemas:
+    FlagStatusResponse:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          description: True if flag enabled, false otherwise
