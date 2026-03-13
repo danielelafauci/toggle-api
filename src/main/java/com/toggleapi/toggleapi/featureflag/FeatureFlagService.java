@@ -1,5 +1,6 @@
 package com.toggleapi.toggleapi.featureflag;
 
+import jakarta.persistence.Cacheable;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,8 @@ import java.util.UUID;
 public class FeatureFlagService {
 
     private final FeatureFlagRepository featureFlagRepository;
+
+
 
     public boolean isEnabled(String flagName, String environment, UUID userId) {
         try {

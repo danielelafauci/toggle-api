@@ -4,6 +4,10 @@ info:
   version: 1.0.0
   description: B2B API per la gestione dei Feature Flag
 
+servers:
+  - url: http://localhost:8080
+    description: Server Locale Spring Boot
+
 paths:
   /api/v1/flags/status:
     get:
