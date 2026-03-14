@@ -1,0 +1,11 @@
+# src/test/resources/application.yaml
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb # Usare un DB in memoria per i test è best practice
+    driver-class-name: org.h2.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+  flyway:
+    enabled: false # Spesso nei test unitari si preferisce disabilitare Flyway o usare un profilo H2

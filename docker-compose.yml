@@ -2,20 +2,31 @@ services:
   postgres-db:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5432"
+      - "${DB_PORT}:5432"
+
+  redis-cache:
+    image: redis:7-alpine
+    container_name: redis_cache
+    ports:
+      - "${REDIS_PORT}:6379"
 
   toggleapi-app:
     image: toggleapi-image
+    build: .
+    ports:
+      - "8080:8080"
     environment:
       DB_HOST: postgres-db
-      DB_USERNAME: ${POSTGRES_USER}
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
-      DB_NAME: ${POSTGRES_DB_NAME}
+      DB_PORT: 5432
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
       REDIS_HOST: redis-cache
+      REDIS_PORT: 6379
     depends_on:
       - postgres-db
       - redis-cache
