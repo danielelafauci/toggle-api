@@ -44,6 +44,143 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/FlagStatusResponse"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '404':
+          $ref: "#/components/responses/NotFound"
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/flags:
+    post:
+      summary: Create a new feature flag
+      operationId: createFlag
+      tags:
+        - FeatureFlag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFlagRequest"
+      responses:
+        '201':
+          description: Flag created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeatureFlagResponse"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+
+    get:
+      summary: Get all feature flags with pagination
+      operationId: getAllFlags
+      tags:
+        - FeatureFlag
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Paginated list of flags (can be empty)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedFeatureFlagResponse"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/flags/{id}:
+    put:
+      summary: Update a feature flag
+      operationId: updateFlag
+      tags:
+        - FeatureFlag
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the feature flag to update
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFlagRequest"
+      responses:
+        '200':
+          description: Flag updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeatureFlagResponse"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '404':
+          $ref: "#/components/responses/NotFound"
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+    get:
+      summary: Get a feature flag by ID
+      operationId: getFlagById
+      tags:
+        - FeatureFlag
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the feature flag to retrieve
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Flag found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeatureFlagResponse"
+        '404':
+          $ref: "#/components/responses/NotFound"
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      summary: Delete a feature flag by ID
+      operationId: deleteFlagById
+      tags:
+        - FeatureFlag
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the feature flag to delete
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Flag deleted successfully (no content)
+        '404':
+          $ref: "#/components/responses/NotFound"
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+
 
 components:
   schemas:
@@ -53,3 +190,117 @@ components:
         enabled:
           type: boolean
           description: True if flag enabled, false otherwise
+    CreateFlagRequest:
+      type: object
+      required:
+        - name
+        - description
+        - rolloutPercentage
+        - environment
+        - enabled
+      properties:
+        name:
+          type: string
+          description: Name of the created feature flag
+        description:
+          type: string
+          description: Description of the created feature flag
+        enabled:
+          type: boolean
+          description: True if flag enabled, false otherwise
+        environment:
+          type: string
+          description: Environment of the flag
+        rolloutPercentage:
+          type: integer
+          description: Rollout percentage of the flag
+    PagedFeatureFlagResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/FeatureFlagResponse"
+        totalElements:
+          type: integer
+          example: 100
+        totalPages:
+          type: integer
+          example: 5
+        last:
+          type: boolean
+          description: True if this is the last page
+    FeatureFlagResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID of the created feature flag
+        name:
+          type: string
+          description: Name of the created feature flag
+        description:
+          type: string
+          description: Description of the created feature flag\
+        enabled:
+          type: boolean
+          description: True if flag enabled, false otherwise
+        environment:
+          type: string
+          description: Environment of the flag
+        rolloutPercentage:
+          type: integer
+          description: Rollout percentage of the flag
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation date of the flag
+        updatedAt:
+          type: string
+          format: date-time
+          description: Update date of the flag
+    ApiError:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          example: 404
+        error:
+          type: string
+          example: "Not Found"
+        message:
+          type: string
+          example: "Risorsa non trovata nel database"
+        path:
+          type: string
+          example: "/api/v1/flags"
+  responses:
+
+    BadRequest:
+      description: Parametri della richiesta non validi (400)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+
+    NotFound:
+      description: La risorsa richiesta non esiste (404)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+
+    InternalServerError:
+      description: Errore generico del server (500)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+
+
+
+
