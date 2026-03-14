@@ -1,6 +1,8 @@
 package com.toggleapi.toggleapi.featureflag;
 
 
+import com.project.toggleapi.openApi.generated.model.CreateFlagRequest;
+import com.project.toggleapi.openApi.generated.model.FeatureFlagResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -10,15 +12,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class FeatureFlagServiceTest {
 
     @Mock
     private FeatureFlagRepository featureFlagRepository;
+
+    @Mock
+    private FeatureFlagMapper featureFlagMapper;
 
     @InjectMocks
     private FeatureFlagService featureFlagService;
@@ -103,6 +107,57 @@ public class FeatureFlagServiceTest {
         //ASSERT
         assertFalse(result);
     }
+
+    @Test
+    void shouldCreateFlagSuccessfully() {
+        CreateFlagRequest request = new CreateFlagRequest();
+        request.setName("nuova-dashboard");
+        request.setEnvironment("produzione");
+
+        FeatureFlag entity = new FeatureFlag();
+        FeatureFlag savedEntity = new FeatureFlag();
+        FeatureFlagResponse expectedResponse = new FeatureFlagResponse();
+        expectedResponse.setId(UUID.randomUUID());
+
+        when(featureFlagRepository.findByNameAndEnvironment("nuova-dashboard", "produzione")).thenReturn(Optional.empty());
+
+        when(featureFlagMapper.toEntity(request)).thenReturn(entity);
+        when(featureFlagRepository.save(entity)).thenReturn(savedEntity);
+        when(featureFlagMapper.toResponse(savedEntity)).thenReturn(expectedResponse);
+
+        FeatureFlagResponse actualResponse = featureFlagService.createFlag(request);
+
+        assertNotNull(actualResponse);
+        assertEquals(expectedResponse.getId(), actualResponse.getId());
+
+        verify(featureFlagRepository, times(1)).save(entity);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenFlagAlreadyExists() {
+
+        CreateFlagRequest request = new CreateFlagRequest();
+        request.setName("nuova-dashboard");
+        request.setEnvironment("produzione");
+
+        FeatureFlag existingFlag = new FeatureFlag();
+
+
+        when(featureFlagRepository.findByNameAndEnvironment("nuova-dashboard", "produzione"))
+                .thenReturn(Optional.of(existingFlag));
+
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            featureFlagService.createFlag(request);
+        });
+
+        assertEquals("Un flag con il nome 'nuova-dashboard' esiste già nell'ambiente 'produzione'.", exception.getMessage());
+
+
+        verify(featureFlagRepository, never()).save(any());
+    }
+
+
 
 
 }
